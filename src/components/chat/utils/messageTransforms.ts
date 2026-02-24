@@ -41,6 +41,16 @@ const toAbsolutePath = (projectPath: string, filePath?: string) => {
   return filePath.startsWith('/') ? filePath : `${projectPath}/${filePath}`;
 };
 
+const isInjectedCodexContextText = (content: string): boolean => {
+  const normalized = content.trimStart();
+  return (
+    normalized.startsWith('# AGENTS.md instructions for ') ||
+    normalized.startsWith('# AGENTS instructions for ') ||
+    normalized.startsWith('<environment_context>') ||
+    normalized.startsWith('<user_shell_command>')
+  );
+};
+
 export const calculateDiff = (oldStr: string, newStr: string): DiffLine[] => {
   const oldLines = oldStr.split('\n');
   const newLines = newStr.split('\n');
@@ -400,7 +410,8 @@ export const convertSessionMessages = (rawMessages: any[]): ChatMessage[] => {
         content.startsWith('<system-reminder>') ||
         content.startsWith('Caveat:') ||
         content.startsWith('This session is being continued from a previous') ||
-        content.startsWith('[Request interrupted');
+        content.startsWith('[Request interrupted') ||
+        isInjectedCodexContextText(content);
 
       if (!shouldSkip) {
         // Parse <task-notification> blocks into compact system messages
